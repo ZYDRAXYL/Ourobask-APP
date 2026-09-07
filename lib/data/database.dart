@@ -8,7 +8,7 @@ class AppDatabase {
   static final AppDatabase instance = AppDatabase._();
 
   static const String fileName = 'ourobask.db';
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
 
   Database? _db;
 
@@ -116,16 +116,19 @@ class AppDatabase {
       created_at INTEGER NOT NULL
     )
     ''',
+    _createIdeaBoxes,
     '''
     CREATE TABLE ideas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       content TEXT NOT NULL,
       color INTEGER NOT NULL,
+      box_id INTEGER REFERENCES idea_boxes(id) ON DELETE SET NULL,
       converted_task_id INTEGER,
       archived INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL
     )
     ''',
+    _indexIdeasBox,
     _createQuestEntries,
     _indexQuestEntries,
     _createNotes,
@@ -169,6 +172,21 @@ class AppDatabase {
 
   static const String _indexNotes = 'CREATE INDEX idx_notes_project ON notes(project_id)';
 
+  /// กล่องหมวดหมู่ที่ผู้ใช้สร้างเพิ่ม — ลบกล่องแล้วไอเดียข้างในไม่หายตาม
+  /// แต่กลับไปเป็นไอเดียที่ยังไม่จัดหมวดในกล่องหลัก (ON DELETE SET NULL)
+  static const String _createIdeaBoxes = '''
+    CREATE TABLE idea_boxes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      color INTEGER NOT NULL,
+      icon_index INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL
+    )
+    ''';
+
+  static const String _indexIdeasBox = 'CREATE INDEX idx_ideas_box ON ideas(box_id)';
+
   /// คำสั่งอัปเกรดฐานข้อมูลของแต่ละเวอร์ชัน (รันเรียงตามเลขเวอร์ชัน)
   static const Map<int, List<String>> _migrations = <int, List<String>>{
     // v2 — เพิ่ม Task ประเภท "quest" (เก็บเงิน) และกิจวัตรแบบรายเดือน
@@ -184,5 +202,12 @@ class AppDatabase {
     ],
     // v3 — เพิ่มโน้ตที่อยู่ในโฟลเดอร์งาน (Work Project)
     3: <String>[_createNotes, _indexNotes],
+    // v4 — เพิ่มกล่องไอเดียตามหมวดหมู่ (กล่องหลักยังรวมทุกใบเหมือนเดิม)
+    4: <String>[
+      _createIdeaBoxes,
+      'ALTER TABLE ideas ADD COLUMN box_id INTEGER REFERENCES idea_boxes(id)'
+          ' ON DELETE SET NULL',
+      _indexIdeasBox,
+    ],
   };
 }

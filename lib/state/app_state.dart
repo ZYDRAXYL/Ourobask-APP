@@ -84,6 +84,7 @@ class AppState extends ChangeNotifier {
   List<Reminder> _reminders = <Reminder>[];
   List<Routine> _routines = <Routine>[];
   List<Idea> _ideas = <Idea>[];
+  List<IdeaBox> _ideaBoxes = <IdeaBox>[];
   List<QuestEntry> _questEntries = <QuestEntry>[];
   List<Note> _notes = <Note>[];
   Map<String, String> _settings = <String, String>{};
@@ -92,7 +93,13 @@ class AppState extends ChangeNotifier {
   List<Project> get projects => List<Project>.unmodifiable(_projects);
   List<Task> get tasks => List<Task>.unmodifiable(_tasks);
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
+
+  /// ไอเดียทุกใบในกล่องหลัก — กล่องหลักเป็นกล่องกลางที่รวมทุกใบไว้เสมอ
+  /// ไม่ว่าใบนั้นจะถูกจัดเข้ากล่องหมวดหมู่ไหนแล้วหรือยัง
   List<Idea> get ideas => List<Idea>.unmodifiable(_ideas.where((Idea i) => !i.archived));
+
+  /// กล่องหมวดหมู่ที่ผู้ใช้สร้างเพิ่มเอง (ไม่รวมกล่องหลัก)
+  List<IdeaBox> get ideaBoxes => List<IdeaBox>.unmodifiable(_ideaBoxes);
   List<Reminder> get reminders => List<Reminder>.unmodifiable(_reminders);
   List<QuestEntry> get questEntries => List<QuestEntry>.unmodifiable(_questEntries);
 
@@ -135,6 +142,7 @@ class AppState extends ChangeNotifier {
     _reminders = await _repo.reminders();
     _routines = await _repo.routines();
     _ideas = await _repo.ideas();
+    _ideaBoxes = await _repo.ideaBoxes();
     _questEntries = await _repo.questEntries();
     _notes = await _repo.notes();
     _loading = false;
@@ -154,6 +162,7 @@ class AppState extends ChangeNotifier {
     _reminders = await _repo.reminders();
     _routines = await _repo.routines();
     _ideas = await _repo.ideas();
+    _ideaBoxes = await _repo.ideaBoxes();
     _questEntries = await _repo.questEntries();
     _notes = await _repo.notes();
     notifyListeners();
@@ -511,6 +520,56 @@ class AppState extends ChangeNotifier {
     await _repo.deleteRoutine(id);
     _routines = await _repo.routines();
     _reminders = await _repo.reminders();
+    notifyListeners();
+  }
+
+  // ------------------------------------------------------------- idea boxes
+  IdeaBox? ideaBoxById(int? id) {
+    if (id == null) return null;
+    for (final IdeaBox box in _ideaBoxes) {
+      if (box.id == id) return box;
+    }
+    return null;
+  }
+
+  /// ไอเดียในกล่องหนึ่ง — [boxId] = null คือกล่องหลักซึ่งรวมทุกใบไว้เหมือนเดิม
+  List<Idea> ideasOfBox(int? boxId) => ideasInBox(ideas, boxId);
+
+  /// จำนวนไอเดียที่ยังไม่ได้จัดเข้ากล่องหมวดหมู่ไหนเลย
+  int get unfiledIdeaCount => ideas.where((Idea i) => !i.isFiled).length;
+
+  int ideaCountOfBox(int? boxId) => ideasOfBox(boxId).length;
+
+  Future<void> saveIdeaBox(IdeaBox box) async {
+    if (box.id == null) {
+      box.sortOrder = _ideaBoxes.length;
+      await _repo.insertIdeaBox(box);
+    } else {
+      await _repo.updateIdeaBox(box);
+    }
+    _ideaBoxes = await _repo.ideaBoxes();
+    notifyListeners();
+  }
+
+  /// ลบกล่องหมวดหมู่ — โดยปกติไอเดียข้างในจะกลับไปเป็นไอเดียที่ยังไม่จัดหมวด
+  /// ในกล่องหลัก ([deleteIdeas] = true ถึงจะลบไอเดียข้างในทิ้งไปด้วย)
+  Future<void> deleteIdeaBox(IdeaBox box, {bool deleteIdeas = false}) async {
+    final int? id = box.id;
+    if (id == null) return;
+    await _repo.deleteIdeaBox(id, deleteIdeas: deleteIdeas);
+    _ideaBoxes = await _repo.ideaBoxes();
+    _ideas = await _repo.ideas();
+    notifyListeners();
+  }
+
+  /// ย้ายไอเดียหลายใบเข้ากล่องหมวดหมู่ ([boxId] = null คือเอาออกจากหมวด)
+  ///
+  /// ไอเดียยังอยู่ในกล่องหลักเสมอ การย้ายนี้เปลี่ยนแค่หมวดที่จัดใส่ไว้
+  Future<void> moveIdeasToBox(List<Idea> items, int? boxId) async {
+    final List<int> ids = items.map((Idea i) => i.id).whereType<int>().toList();
+    if (ids.isEmpty) return;
+    await _repo.moveIdeasToBox(ids, boxId);
+    _ideas = await _repo.ideas();
     notifyListeners();
   }
 
@@ -873,6 +932,7 @@ class AppState extends ChangeNotifier {
         reminders: payload.reminders,
         routines: payload.routines,
         ideas: payload.ideas,
+        ideaBoxes: payload.ideaBoxes,
         questEntries: payload.questEntries,
         notes: payload.notes,
       );
@@ -883,6 +943,7 @@ class AppState extends ChangeNotifier {
         reminders: payload.reminders,
         routines: payload.routines,
         ideas: payload.ideas,
+        ideaBoxes: payload.ideaBoxes,
         questEntries: payload.questEntries,
         notes: payload.notes,
       );

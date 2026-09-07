@@ -36,6 +36,24 @@ const List<IconData> kProjectIcons = <IconData>[
 
 IconData projectIconAt(int index) => kProjectIcons[index % kProjectIcons.length];
 
+/// ไอคอนที่ใช้กับกล่องไอเดียตามหมวดหมู่ (เก็บเป็น index เหมือน Work Project)
+const List<IconData> kIdeaBoxIcons = <IconData>[
+  Icons.inventory_2_rounded,
+  Icons.lightbulb_rounded,
+  Icons.auto_awesome_rounded,
+  Icons.palette_rounded,
+  Icons.code_rounded,
+  Icons.menu_book_rounded,
+  Icons.music_note_rounded,
+  Icons.videogame_asset_rounded,
+  Icons.restaurant_rounded,
+  Icons.flight_takeoff_rounded,
+  Icons.attach_money_rounded,
+  Icons.favorite_rounded,
+];
+
+IconData ideaBoxIconAt(int index) => kIdeaBoxIcons[index % kIdeaBoxIcons.length];
+
 int? _msOf(DateTime? d) => d?.millisecondsSinceEpoch;
 DateTime? _dateOf(Object? v) =>
     v == null ? null : DateTime.fromMillisecondsSinceEpoch(v as int);
@@ -505,12 +523,57 @@ class Routine {
   Routine copy() => Routine.fromMap(toMap());
 }
 
+/// กล่องไอเดียตามหมวดหมู่ที่ผู้ใช้สร้างเพิ่มเอง
+///
+/// กล่องหลักไม่ใช่แถวในตารางนี้ — มันคือ "กล่องกลาง" ที่รวมไอเดียทุกใบเสมอ
+/// ไม่ว่าไอเดียใบนั้นจะถูกจัดเข้าหมวดไหนหรือยังไม่ได้จัดเลยก็ตาม (ดู [Idea.boxId])
+class IdeaBox {
+  IdeaBox({
+    this.id,
+    required this.name,
+    this.color = 0xFFE9A319,
+    this.iconIndex = 0,
+    this.sortOrder = 0,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+
+  int? id;
+  String name;
+  int color;
+  int iconIndex;
+  int sortOrder;
+  DateTime createdAt;
+
+  IconData get icon => ideaBoxIconAt(iconIndex);
+
+  Map<String, Object?> toMap() => <String, Object?>{
+    'id': id,
+    'name': name,
+    'color': color,
+    'icon_index': iconIndex,
+    'sort_order': sortOrder,
+    'created_at': createdAt.millisecondsSinceEpoch,
+  };
+
+  static IdeaBox fromMap(Map<String, Object?> m) => IdeaBox(
+    id: m['id'] as int?,
+    name: m['name'] as String? ?? '',
+    color: m['color'] as int? ?? 0xFFE9A319,
+    iconIndex: m['icon_index'] as int? ?? 0,
+    sortOrder: m['sort_order'] as int? ?? 0,
+    createdAt: _dateOf(m['created_at']) ?? DateTime.now(),
+  );
+
+  IdeaBox copy() => IdeaBox.fromMap(toMap());
+}
+
 /// ไอเดียที่หย่อนไว้ในกล่อง — จะไม่แสดงจนกว่าจะเปิดกล่อง
 class Idea {
   Idea({
     this.id,
     required this.content,
     this.color = 0xFFE9A319,
+    this.boxId,
     this.convertedTaskId,
     this.archived = false,
     DateTime? createdAt,
@@ -519,14 +582,22 @@ class Idea {
   int? id;
   String content;
   int color;
+
+  /// กล่องหมวดหมู่ที่ไอเดียใบนี้ถูกจัดใส่ไว้ (null = ยังไม่ได้จัดหมวด)
+  ///
+  /// ไม่ว่าค่านี้จะเป็นอะไร ไอเดียใบนี้ก็ยังอยู่ในกล่องหลักซึ่งรวมทุกใบไว้เสมอ
+  int? boxId;
   int? convertedTaskId;
   bool archived;
   DateTime createdAt;
+
+  bool get isFiled => boxId != null;
 
   Map<String, Object?> toMap() => <String, Object?>{
     'id': id,
     'content': content,
     'color': color,
+    'box_id': boxId,
     'converted_task_id': convertedTaskId,
     'archived': archived ? 1 : 0,
     'created_at': createdAt.millisecondsSinceEpoch,
@@ -536,12 +607,21 @@ class Idea {
     id: m['id'] as int?,
     content: m['content'] as String? ?? '',
     color: m['color'] as int? ?? 0xFFE9A319,
+    boxId: m['box_id'] as int?,
     convertedTaskId: m['converted_task_id'] as int?,
     archived: _boolOf(m['archived']),
     createdAt: _dateOf(m['created_at']) ?? DateTime.now(),
   );
 
   Idea copy() => Idea.fromMap(toMap());
+}
+
+/// กรองเฉพาะไอเดียที่อยู่ในกล่องหมวดหมู่หนึ่ง
+///
+/// [boxId] == null หมายถึงกล่องหลัก ซึ่งรวมไอเดียทุกใบไว้เหมือนเดิม
+List<Idea> ideasInBox(List<Idea> pile, int? boxId) {
+  if (boxId == null) return List<Idea>.unmodifiable(pile);
+  return List<Idea>.unmodifiable(pile.where((Idea i) => i.boxId == boxId));
 }
 
 /// หยิบไอเดียขึ้นมาหนึ่งใบแบบสุ่มจากกองทั้งหมด

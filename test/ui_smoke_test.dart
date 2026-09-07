@@ -4,10 +4,12 @@ import 'package:ourobask/data/models.dart';
 import 'package:ourobask/state/app_state.dart';
 import 'package:ourobask/ui/calendar/calendar_page.dart';
 import 'package:ourobask/ui/idea_box_page.dart';
+import 'package:ourobask/ui/idea_category_page.dart';
 import 'package:ourobask/ui/idea_random_sheet.dart';
 import 'package:ourobask/ui/note_editor_page.dart';
 import 'package:ourobask/ui/project_notes_page.dart';
 import 'package:ourobask/ui/task_history_page.dart';
+import 'package:ourobask/ui/widgets/idea_widgets.dart';
 import 'package:ourobask/ui/widgets/note_tile.dart';
 import 'package:ourobask/utils/formatters.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +44,82 @@ void main() {
     );
     expect(randomButton.top, greaterThan(openButton.bottom));
     expect(randomButton.size, openButton.size);
+  });
+
+  testWidgets('เปิดกล่องหลักที่ยังว่าง สร้างกล่องหมวดหมู่ได้จากตรงนั้นเลย', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(wrap(const IdeaBoxPage()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('เปิดกล่อง'));
+    await tester.pumpAndSettle();
+    expect(find.text('กล่องว่างเปล่า'), findsOneWidget);
+    expect(find.text('สร้างกล่องหมวดหมู่'), findsOneWidget);
+    expect(find.text('ปิดกล่อง'), findsWidgets);
+
+    await tester.tap(find.text('สร้างกล่องหมวดหมู่'));
+    await tester.pumpAndSettle();
+    expect(find.text('สร้างกล่องใหม่'), findsOneWidget);
+    expect(find.text('ชื่อกล่อง'), findsOneWidget);
+  });
+
+  testWidgets('กล่องหมวดหมู่ที่ถูกลบไปแล้วบอกว่าไอเดียยังอยู่ในกล่องหลัก', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(wrap(const IdeaCategoryPage(boxId: 99)));
+    await tester.pumpAndSettle();
+    expect(find.text('ไม่พบกล่องนี้'), findsOneWidget);
+  });
+
+  testWidgets('การ์ดกล่องหมวดหมู่บอกชื่อและจำนวนไอเดียข้างใน', (
+    WidgetTester tester,
+  ) async {
+    int opened = 0;
+    await tester.pumpWidget(
+      wrap(
+        Scaffold(
+          body: IdeaBoxCard(
+            box: IdeaBox(id: 1, name: 'ของอยากซื้อ', iconIndex: 2),
+            count: 4,
+            onTap: () => opened++,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('ของอยากซื้อ'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.byIcon(kIdeaBoxIcons[2]), findsOneWidget);
+    await tester.tap(find.byType(IdeaBoxCard));
+    expect(opened, 1);
+  });
+
+  testWidgets('โน้ตไอเดียในกล่องหลักติดป้ายบอกหมวดที่จัดไว้', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      wrap(
+        Scaffold(
+          body: IdeaNoteCard(
+            idea: Idea(id: 1, content: 'ทำแอปจดสูตรอาหาร', boxId: 5),
+            box: IdeaBox(id: 5, name: 'งานอดิเรก'),
+            selected: false,
+            onTap: () {},
+            onLongPress: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('ทำแอปจดสูตรอาหาร'), findsOneWidget);
+    expect(find.byType(IdeaBoxChip), findsOneWidget);
+    expect(find.text('งานอดิเรก'), findsOneWidget);
   });
 
   testWidgets('ประวัติงานว่างเปล่าแสดงข้อความ', (WidgetTester tester) async {
