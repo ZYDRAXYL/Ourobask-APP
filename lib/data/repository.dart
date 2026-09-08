@@ -10,6 +10,7 @@ const List<String> kDataTables = <String>[
   'tasks',
   'routines',
   'ideas',
+  'idea_boxes',
   'notes',
   'projects',
 ];
@@ -285,6 +286,51 @@ class Repository {
     await db.delete('routines', where: 'id = ?', whereArgs: <Object?>[id]);
   }
 
+  // -------------------------------------------------------------- idea boxes
+  Future<List<IdeaBox>> ideaBoxes() async {
+    final Database db = await _db;
+    final List<Map<String, Object?>> rows = await db.query(
+      'idea_boxes',
+      orderBy: 'sort_order ASC, id ASC',
+    );
+    return rows.map(IdeaBox.fromMap).toList();
+  }
+
+  Future<int> insertIdeaBox(IdeaBox box) async {
+    final Database db = await _db;
+    final Map<String, Object?> map = box.toMap()..remove('id');
+    final int id = await db.insert('idea_boxes', map);
+    box.id = id;
+    return id;
+  }
+
+  Future<void> updateIdeaBox(IdeaBox box) async {
+    final Database db = await _db;
+    await db.update(
+      'idea_boxes',
+      box.toMap(),
+      where: 'id = ?',
+      whereArgs: <Object?>[box.id],
+    );
+  }
+
+  /// ลบกล่องหมวดหมู่ — ไอเดียข้างในไม่หายตาม แต่กลับไปอยู่ในกล่องหลัก
+  /// แบบยังไม่จัดหมวด ([deleteIdeas] = true ถึงจะลบไอเดียข้างในทิ้งด้วย)
+  Future<void> deleteIdeaBox(int id, {bool deleteIdeas = false}) async {
+    final Database db = await _db;
+    if (deleteIdeas) {
+      await db.delete('ideas', where: 'box_id = ?', whereArgs: <Object?>[id]);
+    } else {
+      await db.update(
+        'ideas',
+        <String, Object?>{'box_id': null},
+        where: 'box_id = ?',
+        whereArgs: <Object?>[id],
+      );
+    }
+    await db.delete('idea_boxes', where: 'id = ?', whereArgs: <Object?>[id]);
+  }
+
   // ------------------------------------------------------------------- ideas
   Future<List<Idea>> ideas() async {
     final Database db = await _db;
@@ -310,6 +356,19 @@ class Repository {
       idea.toMap(),
       where: 'id = ?',
       whereArgs: <Object?>[idea.id],
+    );
+  }
+
+  /// ย้ายไอเดียหลายใบเข้ากล่องหมวดหมู่เดียวกัน ([boxId] = null คือเอาออกจากหมวด)
+  Future<void> moveIdeasToBox(List<int> ideaIds, int? boxId) async {
+    if (ideaIds.isEmpty) return;
+    final Database db = await _db;
+    final String marks = List<String>.filled(ideaIds.length, '?').join(', ');
+    await db.update(
+      'ideas',
+      <String, Object?>{'box_id': boxId},
+      where: 'id IN ($marks)',
+      whereArgs: ideaIds,
     );
   }
 
@@ -357,6 +416,7 @@ class Repository {
     required List<Reminder> reminders,
     required List<Routine> routines,
     required List<Idea> ideas,
+    List<IdeaBox> ideaBoxes = const <IdeaBox>[],
     List<QuestEntry> questEntries = const <QuestEntry>[],
     List<Note> notes = const <Note>[],
   }) async {
@@ -373,6 +433,9 @@ class Repository {
       }
       for (final Routine item in routines) {
         await txn.insert('routines', item.toMap());
+      }
+      for (final IdeaBox item in ideaBoxes) {
+        await txn.insert('idea_boxes', item.toMap());
       }
       for (final Idea item in ideas) {
         await txn.insert('ideas', item.toMap());
@@ -396,12 +459,14 @@ class Repository {
     required List<Reminder> reminders,
     required List<Routine> routines,
     required List<Idea> ideas,
+    List<IdeaBox> ideaBoxes = const <IdeaBox>[],
     List<QuestEntry> questEntries = const <QuestEntry>[],
     List<Note> notes = const <Note>[],
   }) async {
     final Map<int, int> projectIdMap = <int, int>{};
     final Map<int, int> taskIdMap = <int, int>{};
     final Map<int, int> routineIdMap = <int, int>{};
+    final Map<int, int> ideaBoxIdMap = <int, int>{};
 
     for (final Project project in projects) {
       final int? oldId = project.id;
@@ -429,8 +494,16 @@ class Repository {
       final int newId = await insertRoutine(routine);
       if (oldId != null) routineIdMap[oldId] = newId;
     }
+    for (final IdeaBox box in ideaBoxes) {
+      final int? oldId = box.id;
+      box.id = null;
+      final int newId = await insertIdeaBox(box);
+      if (oldId != null) ideaBoxIdMap[oldId] = newId;
+    }
     for (final Idea idea in ideas) {
       idea.id = null;
+      // ไอเดียที่หากล่องหมวดหมู่ปลายทางไม่เจอจะกลับไปอยู่ในกล่องหลักแบบยังไม่จัดหมวด
+      idea.boxId = idea.boxId == null ? null : ideaBoxIdMap[idea.boxId];
       idea.convertedTaskId = idea.convertedTaskId == null
           ? null
           : taskIdMap[idea.convertedTaskId];

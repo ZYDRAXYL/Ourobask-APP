@@ -17,6 +17,7 @@ class ImportResult {
     required this.reminders,
     required this.routines,
     required this.ideas,
+    this.ideaBoxes = 0,
     this.questEntries = 0,
     this.notes = 0,
   });
@@ -26,12 +27,14 @@ class ImportResult {
   final int reminders;
   final int routines;
   final int ideas;
+  final int ideaBoxes;
   final int questEntries;
   final int notes;
 
   String get summary =>
       'โปรเจกต์ $projects • งาน $tasks • การเตือน $reminders • กิจวัตร $routines'
-      ' • ไอเดีย $ideas • บันทึกเงิน $questEntries • โน้ต $notes';
+      ' • ไอเดีย $ideas • กล่องไอเดีย $ideaBoxes • บันทึกเงิน $questEntries'
+      ' • โน้ต $notes';
 }
 
 /// ข้อมูลสำรองทั้งชุด (ใช้ทั้ง export และ import)
@@ -42,6 +45,7 @@ class BackupPayload {
     required this.reminders,
     required this.routines,
     required this.ideas,
+    this.ideaBoxes = const <IdeaBox>[],
     this.questEntries = const <QuestEntry>[],
     this.notes = const <Note>[],
   });
@@ -51,6 +55,7 @@ class BackupPayload {
   final List<Reminder> reminders;
   final List<Routine> routines;
   final List<Idea> ideas;
+  final List<IdeaBox> ideaBoxes;
   final List<QuestEntry> questEntries;
   final List<Note> notes;
 
@@ -60,6 +65,7 @@ class BackupPayload {
     reminders: reminders.length,
     routines: routines.length,
     ideas: ideas.length,
+    ideaBoxes: ideaBoxes.length,
     questEntries: questEntries.length,
     notes: notes.length,
   );
@@ -71,7 +77,7 @@ class BackupService {
 
   final Repository _repo;
 
-  static const int formatVersion = 3;
+  static const int formatVersion = 4;
   static const String magic = 'ourobask-backup';
 
   Future<Map<String, Object?>> buildBackup() async {
@@ -80,6 +86,7 @@ class BackupService {
     final List<Reminder> reminders = await _repo.reminders();
     final List<Routine> routines = await _repo.routines();
     final List<Idea> ideas = await _repo.ideas();
+    final List<IdeaBox> ideaBoxes = await _repo.ideaBoxes();
     final List<QuestEntry> questEntries = await _repo.questEntries();
     final List<Note> notes = await _repo.notes();
     return <String, Object?>{
@@ -91,6 +98,7 @@ class BackupService {
       'reminders': reminders.map((Reminder e) => e.toMap()).toList(),
       'routines': routines.map((Routine e) => e.toMap()).toList(),
       'ideas': ideas.map((Idea e) => e.toMap()).toList(),
+      'idea_boxes': ideaBoxes.map((IdeaBox e) => e.toMap()).toList(),
       'quest_entries': questEntries.map((QuestEntry e) => e.toMap()).toList(),
       'notes': notes.map((Note e) => e.toMap()).toList(),
     };
@@ -166,6 +174,7 @@ class BackupService {
       reminders: rows('reminders').map(Reminder.fromMap).toList(),
       routines: rows('routines').map(Routine.fromMap).toList(),
       ideas: rows('ideas').map(Idea.fromMap).toList(),
+      ideaBoxes: rows('idea_boxes').map(IdeaBox.fromMap).toList(),
       questEntries: rows('quest_entries').map(QuestEntry.fromMap).toList(),
       notes: rows('notes').map(Note.fromMap).toList(),
     );
