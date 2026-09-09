@@ -10,8 +10,8 @@ class AppInfo {
   static const String version = '1.4.0';
   static const int buildNumber = 6;
 
-  static const String repoOwner = 'LDKTC';
-  static const String repoName = 'App-Ourobask';
+  static const String repoOwner = 'ZYDRAXYL';
+  static const String repoName = 'Ourobask-APP';
 
   static const String repoSlug = '$repoOwner/$repoName';
 
