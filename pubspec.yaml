@@ -2,7 +2,7 @@ name: ourobask
 description: "Ourobask - แอปเก็บ Task / Work / Idea พร้อมการแจ้งเตือนและปลุก"
 publish_to: 'none'
 
-version: 1.4.0+6
+version: 1.5.0+7
 
 environment:
   sdk: ^3.13.2

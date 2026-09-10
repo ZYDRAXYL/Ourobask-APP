@@ -7,8 +7,8 @@ class AppInfo {
   /// ต้องตรงกับ `version` ใน pubspec.yaml (มีเทสต์คอยตรวจให้)
   ///
   /// ใช้เป็นค่าสำรองเมื่ออ่านเวอร์ชันจากระบบปฏิบัติการไม่ได้
-  static const String version = '1.4.0';
-  static const int buildNumber = 6;
+  static const String version = '1.5.0';
+  static const int buildNumber = 7;
 
   static const String repoOwner = 'ZYDRAXYL';
   static const String repoName = 'Ourobask-APP';
