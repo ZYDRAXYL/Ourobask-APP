@@ -78,6 +78,7 @@ class AppState extends ChangeNotifier {
   static const String keyUpdateAutoCheck = 'update_auto_check';
   static const String keyUpdateLastCheck = 'update_last_check';
   static const String keyUpdateSkippedVersion = 'update_skipped_version';
+  static const String keyIdeaListFilter = 'idea_list_filter';
 
   List<Project> _projects = <Project>[];
   List<Task> _tasks = <Task>[];
@@ -132,6 +133,18 @@ class AppState extends ChangeNotifier {
   String? get updateSkippedVersion => _settings[keyUpdateSkippedVersion];
   String? get defaultSoundUri => _settings[keyDefaultSoundUri];
   String? get defaultSoundName => _settings[keyDefaultSoundName];
+
+  /// ตัวกรองการแสดงผลของลิสไอเดียในกล่องหลัก — จำค่าที่ผู้ใช้เลือกไว้ล่าสุด
+  IdeaListFilter get ideaListFilter {
+    switch (_settings[keyIdeaListFilter]) {
+      case 'unfiled':
+        return IdeaListFilter.unfiled;
+      case 'filed':
+        return IdeaListFilter.filed;
+      default:
+        return IdeaListFilter.all;
+    }
+  }
 
   // ------------------------------------------------------------------- load
   Future<void> load() async {
@@ -196,6 +209,13 @@ class AppState extends ChangeNotifier {
       setSetting(keyUpdateLastCheck, DateTime.now().millisecondsSinceEpoch.toString());
 
   Future<void> skipUpdateVersion(String? tag) => setSetting(keyUpdateSkippedVersion, tag);
+
+  Future<void> setIdeaListFilter(IdeaListFilter filter) =>
+      setSetting(keyIdeaListFilter, switch (filter) {
+        IdeaListFilter.all => 'all',
+        IdeaListFilter.unfiled => 'unfiled',
+        IdeaListFilter.filed => 'filed',
+      });
 
   Future<void> setDefaultSound(String? uri, String? name) async {
     await _repo.setSetting(keyDefaultSoundUri, uri);

@@ -79,6 +79,12 @@ class IdeaContents extends StatelessWidget {
     final AppState state = context.watch<AppState>();
     final List<IdeaBox> boxes = state.ideaBoxes;
     final List<Idea> ideas = state.ideasOfBox(box?.id);
+    final IdeaListFilter filter = state.ideaListFilter;
+    // ตัวกรอง "มี/ไม่มีหมวดหมู่" มีความหมายเฉพาะในกล่องหลักเท่านั้น
+    // เพราะกล่องหมวดหมู่หนึ่งใบมีแต่ไอเดียที่จัดหมวดแล้วทั้งนั้น
+    final List<Idea> visibleIdeas = _isMain
+        ? filterIdeasByCategory(ideas, filter)
+        : ideas;
     selection.retain(ideas.map((Idea i) => i.id));
 
     if (ideas.isEmpty && (!_isMain || boxes.isEmpty)) {
@@ -145,7 +151,14 @@ class IdeaContents extends StatelessWidget {
               : 'แตะเพื่อเลือก • แตะค้างเพื่อแก้ไข',
           icon: Icons.lightbulb_rounded,
           color: box == null ? null : Color(box!.color),
-          count: ideas.length,
+          count: visibleIdeas.length,
+          trailing: _isMain && ideas.isNotEmpty
+              ? IdeaListFilterButton(
+                  value: filter,
+                  onChanged: (IdeaListFilter value) =>
+                      context.read<AppState>().setIdeaListFilter(value),
+                )
+              : null,
         ),
         if (ideas.isEmpty)
           Padding(
@@ -158,13 +171,35 @@ class IdeaContents extends StatelessWidget {
               ),
             ),
           )
+        else if (visibleIdeas.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Column(
+              children: <Widget>[
+                Text(
+                  'ไม่มีไอเดียตรงกับตัวกรอง "${filter.label}"',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => context.read<AppState>().setIdeaListFilter(
+                    IdeaListFilter.all,
+                  ),
+                  child: const Text('แสดงทั้งหมด'),
+                ),
+              ],
+            ),
+          )
         else
           ListenableBuilder(
             listenable: selection,
             builder: (BuildContext context, _) => Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: ideas
+              children: visibleIdeas
                   .map(
                     (Idea idea) => IdeaNoteCard(
                       idea: idea,
