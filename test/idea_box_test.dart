@@ -61,6 +61,33 @@ void main() {
       expect(ideaBoxIconAt(kIdeaBoxIcons.length), kIdeaBoxIcons.first);
     });
 
+    test('ตัวกรองการแสดงผลลิสไอเดีย', () {
+      final List<Idea> pile = <Idea>[
+        idea(1),
+        idea(2, boxId: 7),
+        idea(3, boxId: 8),
+        idea(4),
+      ];
+      expect(
+        filterIdeasByCategory(pile, IdeaListFilter.all).map((Idea i) => i.id),
+        <int>[1, 2, 3, 4],
+      );
+      expect(
+        filterIdeasByCategory(pile, IdeaListFilter.unfiled).map((Idea i) => i.id),
+        <int>[1, 4],
+      );
+      expect(
+        filterIdeasByCategory(pile, IdeaListFilter.filed).map((Idea i) => i.id),
+        <int>[2, 3],
+      );
+    });
+
+    test('ป้ายชื่อของตัวกรองแต่ละแบบ', () {
+      expect(IdeaListFilter.all.label, 'แสดงทั้งหมด');
+      expect(IdeaListFilter.unfiled.label, 'ไม่มีหมวดหมู่');
+      expect(IdeaListFilter.filed.label, 'มีหมวดหมู่');
+    });
+
     test('ไอเดียเก็บกล่องที่จัดใส่ไว้ลงฐานข้อมูลด้วย', () {
       final Idea filed = Idea(id: 1, content: 'ทำแอป', boxId: 9);
       expect(filed.toMap()['box_id'], 9);

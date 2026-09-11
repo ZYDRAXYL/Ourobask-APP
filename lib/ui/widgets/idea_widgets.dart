@@ -83,6 +83,78 @@ class IdeaNoteCard extends StatelessWidget {
   }
 }
 
+/// ปุ่มเลือกตัวกรองการแสดงผลของลิสไอเดียในกล่องหลัก
+/// (แสดงทั้งหมด / มีหมวดหมู่ / ไม่มีหมวดหมู่)
+class IdeaListFilterButton extends StatelessWidget {
+  const IdeaListFilterButton({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IdeaListFilter value;
+  final ValueChanged<IdeaListFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool active = value != IdeaListFilter.all;
+    return PopupMenuButton<IdeaListFilter>(
+      tooltip: 'ตัวกรองการแสดงผล',
+      initialValue: value,
+      onSelected: onChanged,
+      itemBuilder: (BuildContext context) => IdeaListFilter.values
+          .map(
+            (IdeaListFilter option) => PopupMenuItem<IdeaListFilter>(
+              value: option,
+              child: Row(
+                children: <Widget>[
+                  if (option == value)
+                    Icon(Icons.check_rounded, size: 18, color: theme.colorScheme.primary)
+                  else
+                    const SizedBox(width: 18),
+                  const SizedBox(width: 8),
+                  Text(option.label),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: active
+              ? theme.colorScheme.primaryContainer
+              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(
+              Icons.filter_list_rounded,
+              size: 16,
+              color: active
+                  ? theme.colorScheme.onPrimaryContainer
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              value.label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: active
+                    ? theme.colorScheme.onPrimaryContainer
+                    : theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// ป้ายเล็ก ๆ บอกว่าไอเดียใบนี้ถูกจัดอยู่ในกล่องหมวดหมู่ไหน
 class IdeaBoxChip extends StatelessWidget {
   const IdeaBoxChip({super.key, required this.box});

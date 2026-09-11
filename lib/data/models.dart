@@ -624,6 +624,38 @@ List<Idea> ideasInBox(List<Idea> pile, int? boxId) {
   return List<Idea>.unmodifiable(pile.where((Idea i) => i.boxId == boxId));
 }
 
+/// ตัวเลือกการแสดงผลของลิสไอเดียในกล่องหลัก
+enum IdeaListFilter {
+  /// แสดงทั้งหมด ไม่ว่าจัดหมวดแล้วหรือยัง (ค่าเริ่มต้น)
+  all,
+
+  /// แสดงเฉพาะไอเดียที่ยังไม่จัดหมวด
+  unfiled,
+
+  /// แสดงเฉพาะไอเดียที่จัดหมวดแล้ว
+  filed,
+}
+
+extension IdeaListFilterLabel on IdeaListFilter {
+  String get label => switch (this) {
+    IdeaListFilter.all => 'แสดงทั้งหมด',
+    IdeaListFilter.unfiled => 'ไม่มีหมวดหมู่',
+    IdeaListFilter.filed => 'มีหมวดหมู่',
+  };
+}
+
+/// กรองไอเดียตามตัวเลือกการแสดงผล [filter]
+List<Idea> filterIdeasByCategory(List<Idea> pile, IdeaListFilter filter) {
+  switch (filter) {
+    case IdeaListFilter.all:
+      return List<Idea>.unmodifiable(pile);
+    case IdeaListFilter.unfiled:
+      return List<Idea>.unmodifiable(pile.where((Idea i) => !i.isFiled));
+    case IdeaListFilter.filed:
+      return List<Idea>.unmodifiable(pile.where((Idea i) => i.isFiled));
+  }
+}
+
 /// หยิบไอเดียขึ้นมาหนึ่งใบแบบสุ่มจากกองทั้งหมด
 ///
 /// [excludeId] ใช้กันไม่ให้สุ่มได้ใบเดิมซ้ำติดกัน (ถ้าในกองเหลือใบเดียวก็ยอมซ้ำ)
