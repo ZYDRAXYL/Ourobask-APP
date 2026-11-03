@@ -1,6 +1,6 @@
 # 07 — Grill-me: คำถามที่เจ้าของต้องตัดสิน (Ourobask PC + Eco)
 
-แอปเดิมที่ต่อยอด → 13 ข้อ · เรียงเป็นรอบตามลำดับที่ต้องตัดสิน (รอบ 1 = ไม่ขึ้นกับข้ออื่น) · ในแต่ละรอบ ข้อที่กระทบมากที่สุดอยู่ก่อน
+แอปเดิมที่ต่อยอด → 15 ข้อ (Q14–Q15 เพิ่ม 2026-11-03 จากคำตัดสิน Electron) · เรียงเป็นรอบตามลำดับที่ต้องตัดสิน (รอบ 1 = ไม่ขึ้นกับข้ออื่น) · ในแต่ละรอบ ข้อที่กระทบมากที่สุดอยู่ก่อน
 ข้อระดับ Eco ทั้งหมด (`.zeco`, code `our`, pull-pin, ช่วงรองรับ ฯลฯ) อยู่ใน `Zydraxyl-HUB/Design/eco/ECO-CONTRACT.md` §16 — ไม่ถามซ้ำที่นี่
 
 ---
@@ -124,6 +124,18 @@
 
 ---
 
+## รอบ 2b — เกิดจากคำตัดสิน Electron (2026-11-03)
+
+❓ **Q14** - **ทำ web target ของ Ourobask ยังไง** (ตัวขวางของ shell — 02 §0): (ก) **MVP: web build ที่การเตือนทำงานผ่าน `Notification` ของ Electron** — `NotificationService` มีตัว web ที่ส่ง `postMessage` ให้ shell · ไฟล์สำรองผ่าน download/`<input type=file>` แทน `share_plus` ·
+(ข) web build ที่ปิดการเตือนไว้ก่อน — เร็วกว่า แต่ "แอปเตือนงาน" ที่ไม่เตือน ·
+➡️ (ก) — การเตือนคือหัวใจของแอป และ Electron ทำ `Notification` ได้ตรง ๆ
+
+❓ **Q15** - **DB บน PC เป็นไฟล์จริงแบบ DraconDex หรือไม่**: web build เก็บ SQLite ใน IndexedDB ของ Chromium · DraconDex เปิด SQLite ใน main process เป็นไฟล์ ·
+(ก) **MVP = IndexedDB** · ย้ายเครื่องผ่านไฟล์สำรอง JSON/`our.tasks` เดิม · (ข) สะพาน `databaseFactory` → main process → ไฟล์ `%LOCALAPPDATA%\Ourobask\ourobask.db`
+➡️ (ก) ก่อน · (ข) เมื่อทำ MCP เพราะ `ourobask-mcp.exe` ต้องคุยกับ main process ไม่ใช่ renderer
+
+---
+
 ## ตารางสรุป
 
 | Q# | หัวข้อ | ขึ้นกับ | กระทบเอกสาร |
@@ -141,3 +153,5 @@
 | Q11 | กติกาชนกันตอน merge | Q1, Q10 | 04 §4.1 |
 | Q12 | ที่ลงของงานย่อย | Q5 | 04 §2.2 · 05 §3 · 03 Z7 |
 | Q13 | ผูกกับโปรเจกต์ Eco | Q1 | 06 §5, §9 · 03 D9 |
+| Q14 | web target (ตัวขวาง Electron) | — | 02 §0 · `lib/services/notification_service.dart` |
+| Q15 | DB ไฟล์จริงหรือ IndexedDB | Q14 | 02 §0 · 04 · 06 §4 |

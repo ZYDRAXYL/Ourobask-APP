@@ -1,6 +1,6 @@
 # Ourobask PC + Eco — เอกสารออกแบบ
 
-> **สถานะ: ออกแบบ ยังไม่สร้าง** · ร่าง 2026-10-18 · ไม่มีโค้ดใน `lib/` ถูกแก้จากรอบนี้
+> **สถานะ: ออกแบบ** · ร่าง 2026-10-18 · 2026-11-03: เลือก Electron + มี shell ใน `electron/` แล้ว · ไม่มีโค้ดใน `lib/` ถูกแก้
 > สัญญากลางของ Eco: `Zydraxyl-HUB/Design/eco/ECO-CONTRACT.md` (อ้างด้วยรหัส เช่น ECO-R10)
 > research ดิบ: `Zydraxyl-HUB/Design/eco/research/` (กลุ่ม C แท็ก `[OUR]` + `T5-eco-research.md`)
 
@@ -15,7 +15,7 @@ Ourobask วันนี้เป็นแอป Flutter บน Android เก�
 
 | เรื่อง | ข้อเสนอ | ที่มา |
 |---|---|---|
-| Stack | Flutter Windows desktop จาก `lib/` เดิม · ไม่ fork · ไม่ใช้ Electron | coordinator default 2 · `T1-C` §4.6 |
+| Stack | ✅ **Electron ห่อ `flutter build web`** แบบ DraconDex-EXE + แถบชื่อสไตล์ DraconDex · shell อยู่ที่ `electron/` · `lib/` ยังเป็นต้นฉบับเดียว (เจ้าของตัดสิน 2026-11-03) | [02 §0](./02-architecture.md) |
 | process | **process เดียว** = ผู้เขียน SQLite คนเดียว · โน้ตบนจอเป็นหน้าต่างลูกของ process เดียวกัน | ECO-C5 · `T3-C` X2 |
 | การแจ้งเตือน | **ตัวตั้งเวลาในแอป** (แอปอยู่ในถาด) + `show()` ทันทีเมื่อถึงเวลา — ไม่พึ่ง `zonedSchedule` บน Windows · ไม่ต้อง MSIX | `T3-C` §4.1 → [Grill Q2](./07-grill-me.md) |
 | มือถือ ↔ PC | schema v5: `uid` + `updated_at` + `deleted_at` ทุกตาราง · merge ด้วย `uid` แบบ last-writer-wins · ไม่ซ้ำแถวอีก | `T3-C` §4.4 |

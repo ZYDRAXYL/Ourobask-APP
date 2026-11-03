@@ -1,6 +1,46 @@
 # 02 — สถาปัตยกรรม
 
-## 1. Stack และเหตุผล
+## 0. คำตัดสินของเจ้าของ (2026-11-03) — Electron แบบ DraconDex
+
+> **มีผลเหนือ §1 และ §2 ด้านล่าง** (เก็บไว้เป็นประวัติว่าทำไมเคยเสนอ Flutter Windows)
+
+Ourobask PC = **Electron ห่อ `flutter build web`** — โครงและหน้าตาตาม DraconDex-EXE ·
+Ourobask ไม่มี chain/repo EXE แยก → shell อยู่ที่ **`electron/`** ใน repo นี้ (`lib/` ยังเป็นต้นฉบับเดียว ไม่มี Dart ใน `electron/`)
+
+| เรื่อง | ทำแบบนี้ | ที่มาใน DraconDex-EXE |
+|---|---|---|
+| หน้าต่าง | `BrowserWindow` `frame:false` · จำขนาด/ตำแหน่ง · single-instance lock (= ผู้เขียน DB คนเดียว) | `electron/main.js` |
+| แถบชื่อ | แถบ 38px: โลโก้ · ชื่อ + จุด accent · พื้นที่ลาก · ปุ่ม `- ▢ x` | `css/titlebar.css` |
+| สี | token DraconDex midnight/daylight · accent ม่วง `#6750A4` (สว่าง) / `#D0BCFF` (มืด) | `css/tokens.css` `css/themes.css` |
+| ตัวแอป | `<iframe src="app://web/">` = Flutter web build | — |
+| origin | scheme `app://` privileged — IndexedDB/service worker ใช้บน `file://` ไม่ได้ | — |
+| สิทธิ์ | อนุญาตแค่ `notifications` ให้ `app://web/` | — |
+
+**ของจาก §1 ที่ย้ายไปอยู่ main process ของ Electron** (ไม่ต้องใช้ plugin Flutter อีก):
+
+| §1 เดิม (Flutter plugin) | Electron แทน | สถานะ |
+|---|---|---|
+| `tray_manager` | `Tray` | later |
+| `window_manager` | `BrowserWindow` | ✅ ทำแล้วใน `electron/main.js` |
+| `hotkey_manager` | `globalShortcut` | later |
+| `launch_at_startup` | `app.setLoginItemSettings()` | later |
+| `desktop_multi_window` (โน้ตบนจอ) | `BrowserWindow` ลูก · โหลด `app://web/#/note/<uid>` | later · Q3 ยังใช้ได้ |
+| `flutter_local_notifications` บน Windows | `Notification` ของ Electron (สั่งจาก Flutter ผ่าน `postMessage`) | later |
+| named pipe ผ่าน `win32` FFI | `net.createServer('\\.\pipe\…')` ใน Node | later · ดู Q15 |
+
+→ dependency ใหม่ฝั่ง Dart ลดจาก 8 เหลือ `sqflite_common_ffi_web` + `uuid`
+
+**🚧 ตัวขวาง: Ourobask ยังไม่มี web target** — `pubspec.yaml` ใช้ `sqflite` (native เท่านั้น), ไม่มีโฟลเดอร์ `web/`,
+และ `flutter_local_notifications` / `share_plus` / `file_picker` ต้องมีทางเลี่ยงบน web ·
+ต้องทำก่อน shell จะแสดงแอปได้ (จนกว่าจะเสร็จ shell แสดงข้อความ "ยังไม่มี Flutter web build"):
+1. `flutter create --platforms=web .`
+2. `sqflite_common_ffi_web` + `databaseFactory = databaseFactoryFfiWeb` เมื่อ `kIsWeb` (แบบ QuetzaLib)
+3. `NotificationService` บน web → ส่งไปให้ Electron (หรือปิดไว้ใน MVP)
+→ ❓ [Grill Q14](./07-grill-me.md)
+
+---
+
+## 1. Stack และเหตุผล (⛔ ถูกแทนด้วย §0)
 
 | ชั้น | เลือก | เหตุผล |
 |---|---|---|

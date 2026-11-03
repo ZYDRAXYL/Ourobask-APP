@@ -1,0 +1,39 @@
+{
+  "name": "ourobask-desktop",
+  "productName": "Ourobask",
+  "version": "0.1.0",
+  "description": "Ourobask desktop — Electron shell around the Flutter web build",
+  "main": "main.js",
+  "license": "MIT",
+  "author": "ZYDRAXYL",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "web": "node scripts/copy-web.js",
+    "test": "node --test test/serve.test.js",
+    "build:portable": "electron-builder --win dir --publish never",
+    "build:exe": "electron-builder --win portable --publish never",
+    "build:installer": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.zydraxyl.ourobask",
+    "productName": "Ourobask",
+    "asar": true,
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "serve.js", "shell/**/*", "web/**/*"],
+    "electronLanguages": ["en-US", "th"],
+    "win": { "icon": "shell/icon.png", "target": [{ "target": "dir", "arch": ["x64"] }] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "artifactName": "Ourobask-Setup-${version}.${ext}"
+    },
+    "portable": { "artifactName": "Ourobask-Portable-${version}.${ext}" }
+  }
+}

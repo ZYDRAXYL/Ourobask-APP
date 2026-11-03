@@ -32,6 +32,15 @@ flutter build apk --release                  # single APK, all ABIs
 flutter build apk --release --split-per-abi  # smaller per-architecture APKs (used for in-app auto-update)
 ```
 
+Desktop (Windows) shell — Electron, modelled on DraconDex-EXE, hosts the Flutter **web** build in an iframe under a DraconDex-style title bar (`electron/`, no Dart inside). Ourobask has no web target yet, so the shell shows a "no web build" message until one exists (see `src/design/02-architecture.md` §0):
+```bash
+cd electron && npm install
+npm run web -- ../build/web     # after `flutter build web`
+npm start
+npm test                        # app:// path-resolver tests
+npm run build:exe               # portable exe (Windows)
+```
+
 By default release builds are signed with the debug keystore committed at `android/app/debug.keystore` (same key on every machine/CI run) so successive releases can update over each other in-app without an "package conflicts" install error. To sign with a real key (e.g. for Play Store), create `android/key.properties` with `storePassword`, `keyPassword`, `keyAlias`, `storeFile`.
 
 CI (`.github/workflows/ci.yml`) runs on push to `main` and on PRs: `flutter analyze`, `flutter test`, then a release APK build; a build failure is echoed back as a PR comment. `.github/workflows/release.yml` builds and publishes a release APK to GitHub Releases when a `v*` tag is pushed (or via manual workflow dispatch).

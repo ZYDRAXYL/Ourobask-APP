@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; frame-src app://web; script-src 'self'; style-src 'self'">
+<title>Ourobask</title>
+<link rel="stylesheet" href="shell.css">
+</head>
+<body>
+<div id="window-frame">
+  <header id="title-tab-bar">
+    <div class="tab-brand"><img src="icon.png" alt=""></div>
+    <span class="title-name"><span class="dot"></span>Ourobask</span>
+    <span class="title-version" id="title-version"></span>
+    <div class="title-drag"></div>
+    <div id="window-controls">
+      <button class="window-btn" id="win-min" title="ย่อ" aria-label="Minimize">-</button>
+      <button class="window-btn" id="win-max" title="ขยาย" aria-label="Maximize">▢</button>
+      <button class="window-btn close" id="win-close" title="ปิด" aria-label="Close">x</button>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>
