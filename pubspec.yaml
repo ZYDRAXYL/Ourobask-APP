@@ -14,6 +14,8 @@ dependencies:
 
   # storage
   sqflite: ^2.4.2
+  # web/Electron: same sqflite API over a SQLite file kept in IndexedDB
+  sqflite_common_ffi_web: ^1.1.2
   path: ^1.9.1
   path_provider: ^2.1.5
 
@@ -38,3 +40,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # web/Electron: Flutter web otherwise downloads its Thai fallback font from
+  # fonts.gstatic.com, so Thai text vanishes offline. Used only when kIsWeb.
+  assets:
+    - assets/fonts/NotoSansThai-OFL.txt
+  fonts:
+    - family: NotoSansThai
+      fonts:
+        - asset: assets/fonts/NotoSansThai.ttf

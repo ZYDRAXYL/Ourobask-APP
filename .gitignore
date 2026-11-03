@@ -51,3 +51,7 @@ app.*.map.json
 electron/node_modules/
 electron/dist/
 electron/web/
+
+# sqflite_common_ffi_web runtime (dart run sqflite_common_ffi_web:setup)
+/web/sqlite3.wasm
+/web/sqflite_sw.js

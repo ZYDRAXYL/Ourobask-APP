@@ -77,3 +77,30 @@ jobs:
           name: ourobask-debug-build
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+  build-web:
+    name: Build web (for the Electron shell)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.2
+
+      - run: flutter pub get
+      - run: dart run sqflite_common_ffi_web:setup
+      # bundle CanvasKit instead of loading it from gstatic — the desktop app must work offline
+      - run: flutter build web --release --no-web-resources-cdn
+
+      - name: Electron shell tests
+        working-directory: electron
+        run: node --test test/serve.test.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ourobask-web
+          path: build/web
+          if-no-files-found: error

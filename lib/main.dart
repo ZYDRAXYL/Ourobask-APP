@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'services/notification_service.dart';
@@ -7,6 +9,12 @@ import 'ui/root_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(
+      <String>['Noto Sans Thai'],
+      await rootBundle.loadString('assets/fonts/NotoSansThai-OFL.txt'),
+    );
+  });
   await NotificationService.instance.init();
 
   final AppState state = AppState();
@@ -46,6 +54,8 @@ class OurobaskApp extends StatelessWidget {
     );
     return ThemeData(
       useMaterial3: true,
+      // web ไม่มีฟอนต์ไทยของระบบ — ใช้ฟอนต์ที่แนบมากับแอปแทนการโหลดจาก CDN
+      fontFamilyFallback: kIsWeb ? const <String>['NotoSansThai'] : null,
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(

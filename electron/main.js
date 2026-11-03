@@ -9,8 +9,6 @@
 // A real origin (not file://) is required: the Flutter build registers a
 // service worker and sqflite_common_ffi_web keeps the SQLite file in
 // IndexedDB, and both refuse to run on file://.
-// NOTE: Ourobask has no web target yet (sqflite native only) — until it
-// does, the shell shows the "no web build" message. See src/design/02.
 const { app, BrowserWindow, ipcMain, protocol, net, shell, session } = require('electron');
 const path = require('path');
 const fs = require('fs');

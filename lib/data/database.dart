@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 /// ตัวจัดการฐานข้อมูล SQLite ของแอป
 class AppDatabase {
@@ -14,9 +16,13 @@ class AppDatabase {
 
   Future<Database> get database async => _db ??= await _open();
 
-  Future<String> path() async => p.join(await getDatabasesPath(), fileName);
+  /// บน web (รวมถึงในหน้าต่าง Electron) ไม่มีระบบไฟล์ — ฐานข้อมูลเป็นไฟล์ SQLite
+  /// ใน IndexedDB ของเบราว์เซอร์ จึงใช้แค่ชื่อไฟล์
+  Future<String> path() async =>
+      kIsWeb ? fileName : p.join(await getDatabasesPath(), fileName);
 
   Future<Database> _open() async {
+    if (kIsWeb) databaseFactory = databaseFactoryFfiWeb;
     return openDatabase(
       await path(),
       version: schemaVersion,

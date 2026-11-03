@@ -1,6 +1,6 @@
 # Ourobask PC + Eco — เอกสารออกแบบ
 
-> **สถานะ: ออกแบบ** · ร่าง 2026-10-18 · 2026-11-03: เลือก Electron + มี shell ใน `electron/` แล้ว · ไม่มีโค้ดใน `lib/` ถูกแก้
+> **สถานะ: ออกแบบ** · ร่าง 2026-10-18 · 2026-11-03: เลือก Electron + มี shell ใน `electron/` + web target แล้ว (02 §0)
 > สัญญากลางของ Eco: `Zydraxyl-HUB/Design/eco/ECO-CONTRACT.md` (อ้างด้วยรหัส เช่น ECO-R10)
 > research ดิบ: `Zydraxyl-HUB/Design/eco/research/` (กลุ่ม C แท็ก `[OUR]` + `T5-eco-research.md`)
 

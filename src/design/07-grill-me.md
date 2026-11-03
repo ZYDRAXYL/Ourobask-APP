@@ -126,7 +126,7 @@
 
 ## รอบ 2b — เกิดจากคำตัดสิน Electron (2026-11-03)
 
-❓ **Q14** - **ทำ web target ของ Ourobask ยังไง** (ตัวขวางของ shell — 02 §0): (ก) **MVP: web build ที่การเตือนทำงานผ่าน `Notification` ของ Electron** — `NotificationService` มีตัว web ที่ส่ง `postMessage` ให้ shell · ไฟล์สำรองผ่าน download/`<input type=file>` แทน `share_plus` ·
+✅ **Q14** — **ทำแล้ว 2026-11-03 แบบ (ก)** (เตือนผ่าน `Notification` ของเบราว์เซอร์จากตัวตั้งเวลาในแอป — ไม่ต้องมีสะพาน `postMessage` เพราะ Electron แสดง HTML5 Notification เป็น toast ของ Windows เอง) → [02 §0](./02-architecture.md) · คำถามเดิม: **ทำ web target ของ Ourobask ยังไง** (ตัวขวางของ shell — 02 §0): (ก) **MVP: web build ที่การเตือนทำงานผ่าน `Notification` ของ Electron** — `NotificationService` มีตัว web ที่ส่ง `postMessage` ให้ shell · ไฟล์สำรองผ่าน download/`<input type=file>` แทน `share_plus` ·
 (ข) web build ที่ปิดการเตือนไว้ก่อน — เร็วกว่า แต่ "แอปเตือนงาน" ที่ไม่เตือน ·
 ➡️ (ก) — การเตือนคือหัวใจของแอป และ Electron ทำ `Notification` ได้ตรง ๆ
 
@@ -153,5 +153,5 @@
 | Q11 | กติกาชนกันตอน merge | Q1, Q10 | 04 §4.1 |
 | Q12 | ที่ลงของงานย่อย | Q5 | 04 §2.2 · 05 §3 · 03 Z7 |
 | Q13 | ผูกกับโปรเจกต์ Eco | Q1 | 06 §5, §9 · 03 D9 |
-| Q14 | web target (ตัวขวาง Electron) | — | 02 §0 · `lib/services/notification_service.dart` |
+| Q14 ✅ | web target (ตัวขวาง Electron) | — | 02 §0 · `lib/services/notification_service.dart` |
 | Q15 | DB ไฟล์จริงหรือ IndexedDB | Q14 | 02 §0 · 04 · 06 §4 |

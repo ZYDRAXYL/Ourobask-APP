@@ -32,10 +32,12 @@ flutter build apk --release                  # single APK, all ABIs
 flutter build apk --release --split-per-abi  # smaller per-architecture APKs (used for in-app auto-update)
 ```
 
-Desktop (Windows) shell — Electron, modelled on DraconDex-EXE, hosts the Flutter **web** build in an iframe under a DraconDex-style title bar (`electron/`, no Dart inside). Ourobask has no web target yet, so the shell shows a "no web build" message until one exists (see `src/design/02-architecture.md` §0):
+Desktop (Windows) shell — Electron, modelled on DraconDex-EXE, hosts the Flutter **web** build in an iframe under a DraconDex-style title bar (`electron/`, no Dart inside; see `src/design/02-architecture.md` §0). On web the DB is SQLite-in-IndexedDB (`sqflite_common_ffi_web`), reminders fire from an in-app timer (`services/alert_scheduler.dart`) as browser notifications (`services/web_notify/`), and Thai falls back to the bundled `assets/fonts/NotoSansThai.ttf` so it renders offline:
 ```bash
+dart run sqflite_common_ffi_web:setup            # one-time: sqlite3.wasm + sqflite_sw.js into web/ (gitignored)
+flutter build web --release --no-web-resources-cdn   # no CDN: the desktop app must work offline
 cd electron && npm install
-npm run web -- ../build/web     # after `flutter build web`
+npm run web -- ../build/web
 npm start
 npm test                        # app:// path-resolver tests
 npm run build:exe               # portable exe (Windows)
@@ -43,7 +45,7 @@ npm run build:exe               # portable exe (Windows)
 
 By default release builds are signed with the debug keystore committed at `android/app/debug.keystore` (same key on every machine/CI run) so successive releases can update over each other in-app without an "package conflicts" install error. To sign with a real key (e.g. for Play Store), create `android/key.properties` with `storePassword`, `keyPassword`, `keyAlias`, `storeFile`.
 
-CI (`.github/workflows/ci.yml`) runs on push to `main` and on PRs: `flutter analyze`, `flutter test`, then a release APK build; a build failure is echoed back as a PR comment. `.github/workflows/release.yml` builds and publishes a release APK to GitHub Releases when a `v*` tag is pushed (or via manual workflow dispatch).
+CI (`.github/workflows/ci.yml`) runs on push to `main` and on PRs: `flutter analyze`, `flutter test`, then a release APK build, plus a separate `build-web` job (the Electron shell's input); an APK build failure is echoed back as a PR comment. `.github/workflows/release.yml` builds and publishes a release APK to GitHub Releases when a `v*` tag is pushed (or via manual workflow dispatch).
 
 ## Architecture
 

@@ -30,13 +30,18 @@ Ourobask ไม่มี chain/repo EXE แยก → shell อยู่ที�
 
 → dependency ใหม่ฝั่ง Dart ลดจาก 8 เหลือ `sqflite_common_ffi_web` + `uuid`
 
-**🚧 ตัวขวาง: Ourobask ยังไม่มี web target** — `pubspec.yaml` ใช้ `sqflite` (native เท่านั้น), ไม่มีโฟลเดอร์ `web/`,
-และ `flutter_local_notifications` / `share_plus` / `file_picker` ต้องมีทางเลี่ยงบน web ·
-ต้องทำก่อน shell จะแสดงแอปได้ (จนกว่าจะเสร็จ shell แสดงข้อความ "ยังไม่มี Flutter web build"):
-1. `flutter create --platforms=web .`
-2. `sqflite_common_ffi_web` + `databaseFactory = databaseFactoryFfiWeb` เมื่อ `kIsWeb` (แบบ QuetzaLib)
-3. `NotificationService` บน web → ส่งไปให้ Electron (หรือปิดไว้ใน MVP)
-→ ❓ [Grill Q14](./07-grill-me.md)
+**✅ web target (2026-11-03, Grill Q14 = ก)** — แอปรันใน shell ได้แล้ว:
+
+| เรื่อง | บน web / Electron | ไฟล์ |
+|---|---|---|
+| DB | `sqflite_common_ffi_web` — SQLite ใน IndexedDB · schema/repository เดิมทั้งหมด | `lib/data/database.dart` |
+| การเตือน | ตัวตั้งเวลาในแอป (เช็กทุก 30 วิ) → `Notification` ของเบราว์เซอร์ = toast ของ Windows ใน Electron · เตือนเฉพาะตอนแอปเปิดอยู่ · ไม่มีเสียงปลุกเต็มจอ | `lib/services/alert_scheduler.dart` · `lib/services/web_notify/` |
+| ไฟล์สำรอง | export = ดาวน์โหลด · "แชร์" บน web = ดาวน์โหลดเหมือนกัน · import ใช้ `bytes` | `lib/data/backup.dart` |
+| เสียงปลุกจากไฟล์ | ปิดบน web (ไม่มี path ให้คัดลอก) | `lib/services/sound_service.dart` |
+| ฟอนต์ไทย | แนบ Noto Sans Thai (OFL) เป็น fallback เฉพาะ `kIsWeb` — ไม่งั้น Flutter web โหลดจาก `fonts.gstatic.com` และไทยหายเมื่อออฟไลน์ (ทดสอบแล้ว) · APK ใหญ่ขึ้น ~220 KB | `assets/fonts/` · `lib/main.dart` |
+| build | `flutter build web --release --no-web-resources-cdn` (CanvasKit อยู่ในตัว ไม่ใช้ CDN) | `.github/workflows/ci.yml` `build-web` |
+
+ยังไม่ทำ: ถาด (ให้แอปเปิดค้างไว้เพื่อเตือน), ปุ่มลัด, หน้าต่างโน้ต, MCP — ตามตารางด้านบน
 
 ---
 
