@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../data/models.dart';
 import '../state/app_state.dart';
+import '../utils/web_font.dart';
 import 'idea_category_page.dart';
 import 'widgets/common.dart';
 import 'widgets/idea_contents.dart';
@@ -150,7 +151,11 @@ final ButtonStyle _smallBoxButtonStyle = FilledButton.styleFrom(
   minimumSize: Size.zero,
   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+  textStyle: const TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    fontFamilyFallback: thaiFallback,
+  ),
 );
 
 /// กล่องปิด — ตั้งใจไม่แสดงเนื้อหาหรือจำนวนไอเดียข้างใน
@@ -213,6 +218,7 @@ class _ClosedBox extends StatelessWidget {
                                 textStyle: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
+                                  fontFamilyFallback: thaiFallback,
                                 ),
                               ),
                               icon: const Icon(Icons.edit_note_rounded),
