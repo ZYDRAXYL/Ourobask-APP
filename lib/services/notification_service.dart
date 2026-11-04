@@ -8,6 +8,8 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../data/models.dart';
 import '../utils/formatters.dart';
+import 'alert_scheduler.dart';
+import 'web_notify/web_notify.dart';
 
 /// จัดการการแจ้งเตือนและเสียงปลุกทั้งหมดของแอป
 class NotificationService {
@@ -24,6 +26,12 @@ class NotificationService {
   final Set<String> _createdChannels = <String>{};
 
   bool get isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  /// มีทางเตือนบนแพลตฟอร์มนี้ไหม — Android/iOS ผ่าน OS · web/Electron ผ่านตัวตั้งเวลาในแอป
+  bool get _canAlert => isSupported || kIsWeb;
+
+  /// web/Electron ไม่มีตัวตั้งเวลาของระบบ — แอปจับเวลาเองแล้วขึ้น Notification ของเบราว์เซอร์
+  final AlertScheduler _web = AlertScheduler(showWebNotification);
 
   AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -60,6 +68,7 @@ class NotificationService {
 
   /// ขอสิทธิ์แจ้งเตือน + ตั้งเวลาแบบแม่นยำ
   Future<bool> requestPermissions() async {
+    if (kIsWeb) return requestWebNotificationPermission();
     if (!isSupported) return false;
     await init();
     bool granted = true;
@@ -148,7 +157,7 @@ class NotificationService {
 
   /// ตั้งการเตือนของงานหนึ่งชิ้น
   Future<void> scheduleTaskReminder(Task task, Reminder reminder) async {
-    if (!isSupported) return;
+    if (!_canAlert) return;
     await init();
     await cancelReminder(reminder);
     final DateTime? due = task.effectiveDue;
@@ -157,6 +166,17 @@ class NotificationService {
     final DateTime fireAt = due.subtract(Duration(minutes: reminder.offsetMinutes));
     if (fireAt.isBefore(DateTime.now())) return;
 
+    if (kIsWeb) {
+      _web.add(
+        reminder.notificationId,
+        PendingAlert(
+          fireAt: fireAt,
+          title: task.title.isEmpty ? 'งานที่ตั้งเตือนไว้' : task.title,
+          body: _bodyForTask(task, reminder),
+        ),
+      );
+      return;
+    }
     await _plugin.zonedSchedule(
       reminder.notificationId,
       task.title.isEmpty ? 'งานที่ตั้งเตือนไว้' : task.title,
@@ -180,15 +200,29 @@ class NotificationService {
   /// ตั้งการเตือนของกิจวัตร — ซ้ำทุกสัปดาห์ตามวันที่เลือก
   /// หรือซ้ำทุกเดือนตามวันที่ของเดือน (ใช้กับแผนเก็บเงินของเควส)
   Future<void> scheduleRoutineReminder(Routine routine, Reminder reminder) async {
-    if (!isSupported) return;
+    if (!_canAlert) return;
     await init();
     await cancelReminder(reminder);
     if (!reminder.enabled || !routine.active) return;
     final List<int> slots = routine.isMonthly ? routine.monthDays : routine.days;
     if (slots.isEmpty) return;
 
-    final NotificationDetails details = await _detailsFor(reminder);
     final String body = _bodyForRoutine(routine, reminder);
+    final String title = routine.title.isEmpty ? 'กิจวัตร' : routine.title;
+    if (kIsWeb) {
+      for (final int slot in slots) {
+        if (slot < 1 || slot > _maxRoutineSlot) continue;
+        DateTime nextFire() => routine.isMonthly
+            ? _nextMonthlyFireTime(slot, routine.startMinutes, reminder.offsetMinutes)
+            : _nextFireTime(slot, routine.startMinutes, reminder.offsetMinutes);
+        _web.add(
+          _routineNotificationId(reminder, slot),
+          PendingAlert(fireAt: nextFire(), title: title, body: body, next: nextFire),
+        );
+      }
+      return;
+    }
+    final NotificationDetails details = await _detailsFor(reminder);
     for (final int slot in slots) {
       if (slot < 1 || slot > _maxRoutineSlot) continue;
       final DateTime next = routine.isMonthly
@@ -196,7 +230,7 @@ class NotificationService {
           : _nextFireTime(slot, routine.startMinutes, reminder.offsetMinutes);
       await _plugin.zonedSchedule(
         _routineNotificationId(reminder, slot),
-        routine.title.isEmpty ? 'กิจวัตร' : routine.title,
+        title,
         body,
         tz.TZDateTime.from(next, tz.local),
         details,
@@ -267,6 +301,13 @@ class NotificationService {
   }
 
   Future<void> cancelReminder(Reminder reminder) async {
+    if (kIsWeb) {
+      _web.remove(reminder.notificationId);
+      for (int slot = 1; slot <= _maxRoutineSlot; slot++) {
+        _web.remove(_routineNotificationId(reminder, slot));
+      }
+      return;
+    }
     if (!isSupported) return;
     await _plugin.cancel(reminder.notificationId);
     for (int slot = 1; slot <= _maxRoutineSlot; slot++) {
@@ -275,6 +316,7 @@ class NotificationService {
   }
 
   Future<void> cancelAll() async {
+    if (kIsWeb) return _web.clear();
     if (!isSupported) return;
     await init();
     await _plugin.cancelAll();
@@ -286,9 +328,9 @@ class NotificationService {
     required List<Routine> routines,
     required List<Reminder> reminders,
   }) async {
-    if (!isSupported) return;
+    if (!_canAlert) return;
     await init();
-    await _plugin.cancelAll();
+    kIsWeb ? _web.clear() : await _plugin.cancelAll();
     final Map<int, Task> taskById = <int, Task>{
       for (final Task t in tasks)
         if (t.id != null) t.id!: t,
@@ -311,6 +353,10 @@ class NotificationService {
 
   /// ทดสอบการเตือน/เสียงปลุกทันที
   Future<void> showPreview(Reminder reminder, String title) async {
+    if (kIsWeb) {
+      showWebNotification(title, reminder.isAlarm ? 'ทดสอบเสียงปลุก' : 'ทดสอบการแจ้งเตือน');
+      return;
+    }
     if (!isSupported) return;
     await init();
     await _plugin.show(

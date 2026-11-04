@@ -1,0 +1,57 @@
+/* Window chrome in DraconDex's style — values copied from
+   DraconDex-EXE electron/css/tokens.css + themes.css (midnight / daylight)
+   + titlebar.css. Only accent differs per app (ECO-T2). */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+
+:root{
+	--bg:#0f0f13; --surface:#18181f; --raised:#22222d; --hover:#2a2a38; --border:#2e2e3f;
+	--t1:#e8e8f0; --t2:#9090a8; --t3:#5a5a72;
+	--accent:#D0BCFF; --on-accent:#21005D;  /* Ourobask purple (#6750A4 family), dark-theme shade */
+	--danger:#ef4444; --on-danger:#fff;
+	--r:8px; --rs:4px; --fs-body:13px; --ease:.15s ease;
+	color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+	:root{
+		--bg:#f4f6fb; --surface:#ffffff; --raised:#eef1f7; --hover:#e2e7f0; --border:#ccd3df;
+		--t1:#172033; --t2:#596274; --t3:#8a94a6;
+		--accent:#6750A4; --on-accent:#fff;   /* the app's seed colour */
+		--danger:#dc2626;
+		color-scheme:light;
+	}
+}
+
+body{
+	background:var(--bg);color:var(--t1);
+	font-family:'Segoe UI Variable','Segoe UI','Leelawadee UI','Noto Sans Thai',system-ui,sans-serif;
+	font-size:var(--fs-body);
+}
+#window-frame{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+
+#title-tab-bar{
+	height:38px;background:var(--bg);border-bottom:1px solid var(--border);
+	display:flex;align-items:center;gap:6px;flex-shrink:0;
+	-webkit-app-region:drag;user-select:none;
+}
+.tab-brand{width:44px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tab-brand img{width:22px;height:22px;border-radius:var(--rs)}
+.title-name{font-weight:600;color:var(--t1)}
+.title-name .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
+.title-version{color:var(--t2);font-size:12px}
+.title-drag{flex:1;height:100%;min-width:24px}
+
+#window-controls{height:100%;display:flex;align-items:stretch;flex-shrink:0;-webkit-app-region:no-drag}
+.window-btn{
+	width:46px;height:38px;border:none;background:transparent;
+	color:var(--t2);font-size:var(--fs-body);cursor:pointer;font-family:inherit;
+	transition:background var(--ease),color var(--ease);
+}
+.window-btn:hover{background:var(--hover);color:var(--t1)}
+.window-btn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.window-btn.close:hover{background:var(--danger);color:var(--on-danger)}
+
+#app{flex:1;min-height:0;display:flex}
+#app iframe{flex:1;border:0;background:var(--surface)}
+#missing{margin:auto;max-width:420px;text-align:center;color:var(--t2);line-height:1.6}
+#missing code{color:var(--t1);background:var(--raised);padding:1px 6px;border-radius:var(--rs)}

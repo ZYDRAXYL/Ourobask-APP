@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -126,6 +127,11 @@ class BackupService {
 
   /// แชร์ไฟล์สำรองผ่านแอปอื่น (Drive, อีเมล, ฯลฯ)
   Future<void> shareBackup() async {
+    // web ไม่มีโฟลเดอร์ชั่วคราว — ดาวน์โหลดไฟล์แทนการแชร์
+    if (kIsWeb) {
+      await exportToFile();
+      return;
+    }
     final String json = const JsonEncoder.withIndent('  ').convert(await buildBackup());
     final Directory dir = await getTemporaryDirectory();
     final File file = File('${dir.path}/${defaultFileName()}');

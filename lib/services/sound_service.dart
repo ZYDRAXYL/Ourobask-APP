@@ -42,6 +42,8 @@ class SoundService {
   }
 
   Future<PickedSound?> pickAudioFile() async {
+    // web ไม่มี path ของไฟล์ให้คัดลอก และยังไม่มีเสียงปลุกบน web
+    if (kIsWeb) return null;
     final FilePickerResult? picked = await FilePicker.platform.pickFiles(
       dialogTitle: 'เลือกไฟล์เสียงปลุก',
       type: FileType.audio,

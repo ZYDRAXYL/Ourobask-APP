@@ -1,6 +1,51 @@
 # 02 — สถาปัตยกรรม
 
-## 1. Stack และเหตุผล
+## 0. คำตัดสินของเจ้าของ (2026-11-03) — Electron แบบ DraconDex
+
+> **มีผลเหนือ §1 และ §2 ด้านล่าง** (เก็บไว้เป็นประวัติว่าทำไมเคยเสนอ Flutter Windows)
+
+Ourobask PC = **Electron ห่อ `flutter build web`** — โครงและหน้าตาตาม DraconDex-EXE ·
+Ourobask ไม่มี chain/repo EXE แยก → shell อยู่ที่ **`electron/`** ใน repo นี้ (`lib/` ยังเป็นต้นฉบับเดียว ไม่มี Dart ใน `electron/`)
+
+| เรื่อง | ทำแบบนี้ | ที่มาใน DraconDex-EXE |
+|---|---|---|
+| หน้าต่าง | `BrowserWindow` `frame:false` · จำขนาด/ตำแหน่ง · single-instance lock (= ผู้เขียน DB คนเดียว) | `electron/main.js` |
+| แถบชื่อ | แถบ 38px: โลโก้ · ชื่อ + จุด accent · พื้นที่ลาก · ปุ่ม `- ▢ x` | `css/titlebar.css` |
+| สี | token DraconDex midnight/daylight · accent ม่วง `#6750A4` (สว่าง) / `#D0BCFF` (มืด) | `css/tokens.css` `css/themes.css` |
+| ตัวแอป | `<iframe src="app://web/">` = Flutter web build | — |
+| origin | scheme `app://` privileged — IndexedDB/service worker ใช้บน `file://` ไม่ได้ | — |
+| สิทธิ์ | อนุญาตแค่ `notifications` ให้ `app://web/` | — |
+
+**ของจาก §1 ที่ย้ายไปอยู่ main process ของ Electron** (ไม่ต้องใช้ plugin Flutter อีก):
+
+| §1 เดิม (Flutter plugin) | Electron แทน | สถานะ |
+|---|---|---|
+| `tray_manager` | `Tray` | later |
+| `window_manager` | `BrowserWindow` | ✅ ทำแล้วใน `electron/main.js` |
+| `hotkey_manager` | `globalShortcut` | later |
+| `launch_at_startup` | `app.setLoginItemSettings()` | later |
+| `desktop_multi_window` (โน้ตบนจอ) | `BrowserWindow` ลูก · โหลด `app://web/#/note/<uid>` | later · Q3 ยังใช้ได้ |
+| `flutter_local_notifications` บน Windows | `Notification` ของ Electron (สั่งจาก Flutter ผ่าน `postMessage`) | later |
+| named pipe ผ่าน `win32` FFI | `net.createServer('\\.\pipe\…')` ใน Node | later · ดู Q15 |
+
+→ dependency ใหม่ฝั่ง Dart ลดจาก 8 เหลือ `sqflite_common_ffi_web` + `uuid`
+
+**✅ web target (2026-11-03, Grill Q14 = ก)** — แอปรันใน shell ได้แล้ว:
+
+| เรื่อง | บน web / Electron | ไฟล์ |
+|---|---|---|
+| DB | `sqflite_common_ffi_web` — SQLite ใน IndexedDB · schema/repository เดิมทั้งหมด | `lib/data/database.dart` |
+| การเตือน | ตัวตั้งเวลาในแอป (เช็กทุก 30 วิ) → `Notification` ของเบราว์เซอร์ = toast ของ Windows ใน Electron · เตือนเฉพาะตอนแอปเปิดอยู่ · ไม่มีเสียงปลุกเต็มจอ | `lib/services/alert_scheduler.dart` · `lib/services/web_notify/` |
+| ไฟล์สำรอง | export = ดาวน์โหลด · "แชร์" บน web = ดาวน์โหลดเหมือนกัน · import ใช้ `bytes` | `lib/data/backup.dart` |
+| เสียงปลุกจากไฟล์ | ปิดบน web (ไม่มี path ให้คัดลอก) | `lib/services/sound_service.dart` |
+| ฟอนต์ไทย | แนบ Noto Sans Thai (OFL) เป็น fallback เฉพาะ `kIsWeb` — ไม่งั้น Flutter web โหลดจาก `fonts.gstatic.com` และไทยหายเมื่อออฟไลน์ (ทดสอบแล้ว) · APK ใหญ่ขึ้น ~220 KB | `assets/fonts/` · `lib/main.dart` |
+| build | `flutter build web --release --no-web-resources-cdn` (CanvasKit อยู่ในตัว ไม่ใช้ CDN) | `.github/workflows/ci.yml` `build-web` |
+
+ยังไม่ทำ: ถาด (ให้แอปเปิดค้างไว้เพื่อเตือน), ปุ่มลัด, หน้าต่างโน้ต, MCP — ตามตารางด้านบน
+
+---
+
+## 1. Stack และเหตุผล (⛔ ถูกแทนด้วย §0)
 
 | ชั้น | เลือก | เหตุผล |
 |---|---|---|

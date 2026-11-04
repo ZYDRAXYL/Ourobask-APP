@@ -4,6 +4,13 @@
 · กติกา layout ของ DraconDex `DraconDex-APP/docs/UX-LAYOUT.md` §5/§8/§9 (ปุ่มหลักหนึ่งปุ่มต่อพื้นที่ · เมนู ≤ 2 ชั้น ≤ 4 กลุ่ม ·
 อันตรายอยู่ท้าย · **สีไม่เคยทำงานคนเดียว** — สถานะ = ไอคอน + ข้อความ) · ข้อความ UI เป็นไทย ฝังในโค้ดแบบเดิม (Ourobask ไม่มีชั้น l10n)
 
+## 0. กรอบหน้าต่าง (Electron) — สไตล์ DraconDex
+
+ตาม [02 §0](./02-architecture.md): แถบชื่อ 38px เป็น HTML ใน `electron/shell/` (token ชุดเดียวกับ DraconDex `tokens.css`/`themes.css`/`titlebar.css`)
+— โลโก้ · ● Ourobask · เวอร์ชัน · พื้นที่ลาก · `- ▢ x` (ปิด hover `--danger`) · midnight/daylight ตามระบบ · accent ม่วง
+ใต้แถบคือ Flutter web build (iframe) — ให้ดูเป็นแอปเดียวกันด้วย §8 (token → `ThemeData`) · ถาด/โน้ตบนจอ/แจ้งเตือนในหัวข้อด้านล่าง
+ทำจาก main process ของ Electron แทน plugin Flutter (02 §0 ตาราง)
+
 ## 1. รายการพื้นผิว
 
 | # | พื้นผิว | ชนิดหน้าต่าง | ลำดับ |
