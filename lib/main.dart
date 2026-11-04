@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'services/notification_service.dart';
 import 'state/app_state.dart';
 import 'ui/root_shell.dart';
+import 'utils/web_font.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +56,7 @@ class OurobaskApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       // web ไม่มีฟอนต์ไทยของระบบ — ใช้ฟอนต์ที่แนบมากับแอปแทนการโหลดจาก CDN
-      fontFamilyFallback: kIsWeb ? const <String>['NotoSansThai'] : null,
+      fontFamilyFallback: thaiFallback,
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(
@@ -63,6 +64,7 @@ class OurobaskApp extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         titleTextStyle: TextStyle(
+          fontFamilyFallback: thaiFallback,
           fontSize: 22,
           fontWeight: FontWeight.w700,
           color: scheme.onSurface,
